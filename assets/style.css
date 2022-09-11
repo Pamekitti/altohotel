@@ -166,3 +166,31 @@ p {
 #n-slider .rc-slider-dot-active {
   border-color: #E6E6E6;
 }
+#price-range {
+  margin-top: 8px;
+  margin-bottom: 10px;
+}
+#price-range .rc-slider-handle  {
+  background-color: #52BE80;
+  border: 0px;
+}
+#price-range .rc-slider-track {
+  background-color: #52BE80;
+}
+#price-range .rc-slider-dot-active {
+  border-color: #52BE80;
+}
+#review-range {
+  margin-top: 8px;
+  margin-bottom: 10px;
+}
+#review-range .rc-slider-handle  {
+  background-color: #52BE80;
+  border: 0px;
+}
+#review-range .rc-slider-track {
+  background-color: #52BE80;
+}
+#review-range .rc-slider-dot-active {
+  border-color: #52BE80;
+}

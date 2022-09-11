@@ -1,37 +1,15 @@
-from preprocessing.clean_data import clean_hotel_data
-from preprocessing.feature_engineering import feature_engineer
 from preprocessing.graphs import *
 import pandas as pd
-import numpy as np
 import dash
 from dash import dcc, html
 import dash_daq as daq
-import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, ALL, State, MATCH, ALLSMALLER
-import plotly
-import plotly.express as px
 
-# import plotly.figure_factory as ff
-# import matplotlib.pyplot as plt
-# import matplotlib.cm as cm
-# import seaborn as sns
-
-new_data = False
-if new_data:
-    ds = pd.read_csv('csv_files/hotel_data_expedia.csv')
-    df = clean_hotel_data(ds)
-    df.to_csv('cleaned_hotel.csv')
-else:
-    df = pd.read_csv('csv_files/cleaned_hotel.csv')
-    print(f'Date contains {df.shape[0]} rows of hotels in Bangkok')
-
-df = feature_engineer(df)
-train = df[['latitude', 'longitude']]
+df = pd.read_csv('csv_files/clustered_hotel_regressor_filled.csv')
+print(f'Date contains {df.shape[0]} rows of hotels in Bangkok')
 
 # Graphs
-data = df[~df['price_display'].isna()]
-mapbox = plot_map(data)
-availability = plot_availability(df)
+mapbox = plot_map(df)
 two_d = plot_review_price(df)
 three_d = plot_3d_review_price(df)
 
@@ -43,29 +21,24 @@ app.layout = html.Div([
         html.H1("Hotel Dash"),
         html.P("Visualize hotel's business performance with "
                "data science and interactive data visualization platform"),
-        html.Label("Price Range", className='dropdown-labels'),
-        dcc.Dropdown(id='price-dropdown', className='dropdown', multi=False,
-                     options=[
-                         {'label': 'High', 'value': 300},
-                         {'label': 'Low', 'value': 100}
-                     ],
-                     value=300),
-        html.Label("Review Counts", className='dropdown-labels'),
-        dcc.Dropdown(id='review-dropdown', className='dropdown', multi=False,
-                     options=[
-                         {'label': '10', 'value': 10},
-                         {'label': '100', 'value': 100}
-                     ],
-                     value=10),
+        html.Label("Price Range (USD)", className='dropdown-labels'),
+        dcc.RangeSlider(0, 1000, id='price-range', value=[0, 1000],
+                        tooltip={"placement": "bottom", "always_visible": True}),
+        html.Label("Rating Range", className='dropdown-labels'),
+        dcc.RangeSlider(0, 5, id='review-range', value=[0, 5],
+                        tooltip={"placement": "bottom", "always_visible": True}),
         html.Button(id='update-button', children="Apply Filter"),
         html.Div([
                 html.Label("Clustering Algorithm", className='other-labels'),
                 dcc.Dropdown(id='cluster-dropdown', className='dropdown',
                              options=[
-                                 {'label': 'KMeans', 'value': 'KMeans'},
+                                 {'label': 'None', 'value': 'none'},
+                                 {'label': 'KMeans', 'value': 'kmeans'},
+                                 {'label': 'Agglomerative Clustering', 'value': 'agglomerative'},
+                                 {'label': 'Spectral Clustering', 'value': 'spectral'},
                                  {'label': 'DBSCAN', 'value': 'DBSCAN'}
                              ],
-                             value='KMeans'),
+                             value='none'),
                 html.Label("Number of Clusters", className='other-labels'),
                 dcc.Slider(id='n-slider', min=5, max=10, step=1, value=8),
                 html.Label("Fill Missing Data with Regressor?", className='other-labels'),
@@ -83,6 +56,51 @@ app.layout = html.Div([
         ], id='bottom-half'),
     ], id='right-container')
 ], id='container')
+
+
+@app.callback(
+    [Output(component_id='mapbox',
+            component_property='figure'),
+     Output(component_id='two-plot',
+            component_property='figure'),
+     Output(component_id='three-plot',
+            component_property='figure')],
+    [State(component_id='price-range',
+           component_property='value'),
+     State(component_id='review-range',
+           component_property='value'),
+     Input(component_id='update-button',
+           component_property='n_clicks'),
+     State(component_id='cluster-dropdown',
+           component_property='value'),
+     State(component_id='n-slider',
+           component_property='value'),
+     Input(component_id='update-cluster',
+           component_property='n_clicks'),
+     Input(component_id='regression-toggle',
+           component_property='on')
+     ]
+)
+def update_output(price_range, review_range, filter_clicks, cluster_algorithm, cluster_n, cluster_clicks, regressor_on):
+    dff = df.copy()
+    fig1 = mapbox
+    fig2 = two_d
+    fig3 = three_d
+    if filter_clicks is not None:
+        if filter_clicks > 0:
+            dff = dff[dff['price'].between(price_range[0], price_range[1])]
+            dff = dff[dff['review_score'].between(review_range[0], review_range[1])]
+            fig1 = plot_map(dff)
+            fig2 = plot_review_price(dff)
+            fig3 = plot_3d_review_price(dff)
+    if (cluster_clicks is not None) and (cluster_algorithm != 'none'):
+        if cluster_clicks > 0:
+            if regressor_on:
+                fig2 = plot_review_price(dff, regressor=True)
+                fig3 = plot_3d_review_price(dff, regressor=True)
+            fig1 = plot_cluster(dff, f'{cluster_algorithm}_{cluster_n}')
+
+    return fig1, fig2, fig3
 
 
 if __name__ == '__main__':
