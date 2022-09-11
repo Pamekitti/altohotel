@@ -37,6 +37,7 @@ def feature_engineer(df):
     df['discount_percent'] = df['discount_percent'].fillna(0)
     df['price_original'] = df['price_original'].fillna(df['price_display'])
     df = df.drop(df[df['price_original'] >= 1000].index)
+    df['price'] = (df['price_display'] + df['price_original'])/2
 
     # Reviews
     df = df.drop('review_superlative', axis=1)

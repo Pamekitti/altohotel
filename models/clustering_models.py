@@ -16,12 +16,14 @@ class Clusterer:
         self.metric = []
         self.inertia = []
         self.x = None
+        self.prediction = []
 
     def train(self, x):
         self.x = x
         metric = []  # metrics: silhouette score
         inertia = []  # find elbow with SSE plot
         model_list = []
+        prediction = []
         print('#'*25)
         print(f'Clustering with {self.algorithm}...')
         for cluster in range(self.min_cluster, self.max_cluster+1):
@@ -40,10 +42,12 @@ class Clusterer:
             else:
                 print(f'[{cluster} cluster]     train-silhouette:{round(silhouette_avg, 4)}')
             model_list.append(model)
+            prediction.append(cluster_labels)
 
         self.model_list = model_list
         self.metric = metric
         self.inertia = inertia
+        self.prediction = prediction
 
     def silhouette_plot(self):
         plt.figure(figsize=(17, 6))
@@ -104,4 +108,3 @@ class Clusterer:
                 self.x.iloc[:, 0], self.x.iloc[:, 1], marker=".", s=30, lw=0, alpha=0.7, c=colors, edgecolor="k"
             )
         plt.show()
-

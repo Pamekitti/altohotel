@@ -14,12 +14,25 @@ else:
 
 df = feature_engineer(df)
 train = df[['latitude', 'longitude']]
-visualize_silhouette_results = True
-for algorithm in ['KMeans', 'AgglomerativeClustering', 'SpectralClustering']:
+
+models = {'KMeans': 'kmeans',
+          'AgglomerativeClustering': 'agglomerative',
+          'SpectralClustering': 'spectral'}
+
+# True will show model evaluate plots
+visualize_silhouette_results = False
+
+# Train/Predict cluster labels and append results to DataFrame
+for algorithm in models:
     clusterer = Clusterer(algorithm=algorithm, min_cluster=5, max_cluster=10)
     clusterer.train(train)
     if visualize_silhouette_results:
         clusterer.silhouette_plot()
+    for i in range(clusterer.max_cluster - clusterer.min_cluster + 1):
+        df[f'{models[algorithm]}_{i + clusterer.min_cluster}'] = clusterer.prediction[i]
+
+df.to_csv('csv_files/clustered_hotel.csv')
+
 
 
 
