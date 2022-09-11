@@ -3,7 +3,9 @@ import pandas as pd
 import dash
 from dash import dcc, html
 import dash_daq as daq
-from dash.dependencies import Input, Output, ALL, State, MATCH, ALLSMALLER
+from dash.dependencies import Input, Output, State
+import os
+app_port = os.environ['APP_PORT']
 
 df = pd.read_csv('csv_files/clustered_hotel_regressor_filled.csv')
 print(f'Date contains {df.shape[0]} rows of hotels in Bangkok')
@@ -104,4 +106,4 @@ def update_output(price_range, review_range, filter_clicks, cluster_algorithm, c
 
 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', debug=True)
+    app.run_server(debug=False, host='0.0.0.0', port=app_port)
