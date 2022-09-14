@@ -8,7 +8,52 @@ import numpy as np
 
 
 class Clusterer:
+    """
+    Train, Evaluate, Store, Clustering Models
+
+    ...
+    Attributes
+    ----------
+    algorithm: str
+        Clustering algorithm name
+    min_cluster: int
+        Minimun number of clusters to train
+    max_cluster: int
+        Maximum number of clusters to train
+    model_list: list
+        Store list of models
+    metric: list
+        Store multiple train results in list to evaluate model with silhouette score
+    inertia: list
+        Store multiple train results in list to evaluate KMeans model
+    x: DataFrame
+        Input train
+    prediction:
+        Labels that assign clusters to the input
+
+    Methods
+    -------
+    train(x):
+        train and store results for mode evaluation
+    silhouette_plot():
+        Plot silhouette results from previous model training
+    sse_plot():
+        Plot sum of the squared error to evaluate KMeans and identify
+        optimal number of clusters with the elbow method
+    plot_full_results():
+        Generate full report of graphs for all models
+    """
     def __init__(self, algorithm, min_cluster, max_cluster):
+        """
+        Constructs all the necessary attributes for clustering model
+
+        algorithm: str
+            Clustering algorithm name
+        min_cluster: int
+            Minimun number of clusters to train
+        max_cluster: int
+            Maximum number of clusters to train
+        """
         self.algorithm = algorithm  # KMeans, DBSCAN, AgglomerativeClustering
         self.min_cluster = min_cluster
         self.max_cluster = max_cluster
@@ -19,6 +64,14 @@ class Clusterer:
         self.prediction = []
 
     def train(self, x):
+        '''
+        Train and store results for mode evaluation
+
+        Parameter
+        ----------
+        x: DataFrame
+            Input date to cluster
+        '''
         self.x = x
         metric = []  # metrics: silhouette score
         inertia = []  # find elbow with SSE plot

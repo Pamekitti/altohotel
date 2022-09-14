@@ -3,13 +3,6 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="/cleaned_hotel.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="/csv_files/clustered_hotel.csv">
           <value>
             <Attribute>
@@ -18,13 +11,6 @@
           </value>
         </entry>
         <entry key="/csv_files/clustered_hotel_regressor_filled.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/hotel_data_expedia.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

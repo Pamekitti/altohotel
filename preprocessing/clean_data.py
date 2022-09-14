@@ -1,11 +1,12 @@
 def clean_hotel_data(ds):
+    # Identify bad columns to be removed
     web_cols = ['imageGallery/images/0/fallbackImage/url', 'imageGallery/images/0/image/url',
                 'imageGallery/images/1/image/url',
                 'imageGallery/images/2/image/url',
                 'imageGallery/images/3/image/url',
                 'propertyDetailsLink/uri/value', 'propertyImage/fallbackImage/url', 'propertyImage/image/url']
 
-    shit_cols = ['destinationInfo/distanceFromDestination/unit', 'destinationInfo/distanceFromMessaging', 'destinationInfo/regionId',
+    bad_cols = ['destinationInfo/distanceFromDestination/unit', 'destinationInfo/distanceFromMessaging', 'destinationInfo/regionId',
                  'imageGallery/images/0/fallbackImage', 'imageGallery/images/0/imageId', 'imageGallery/images/0/subjectId',
                  'imageGallery/images/1/fallbackImage', 'imageGallery/images/1/imageId', 'imageGallery/images/1/subjectId',
                  'imageGallery/images/2/fallbackImage', 'imageGallery/images/2/imageId', 'imageGallery/images/2/subjectId',
@@ -18,7 +19,8 @@ def clean_hotel_data(ds):
                  'priceMetadata/rateDiscount/description', 'propertyImage/image/description'
     ]
 
-    df = ds[[col for col in ds.columns if col not in web_cols + shit_cols]]
+    # Rename columns to be used for better interpretation
+    df = ds[[col for col in ds.columns if col not in web_cols + bad_cols]]
     df = df.rename(columns={'amenities/0/icon':'amenities_0',
                     'amenities/1/icon':'amenities_1',
                     'amenities/2/icon':'amenities_2',
@@ -55,16 +57,19 @@ def clean_hotel_data(ds):
                     'vipMessaging':'vip'
                     })
 
+    # Drop another round of columns
     df = df.drop(['map_marker_price', 'price_lead', 'soldout', 'fallback_image',
              'offer_theme_0', 'offer_summary_0', 'offer_theme_1', 'offer_summary_1',
              'neighborhood', 'image_0', 'image_1', 'image_2', 'image_3', 'fallback_image',
              'price_disclaimer', 'price_disclaim', 'strikeout_type', 'discount_type'], axis=1)
 
+    # Remove currency units and ',' then turn price string to float
     for col in ['price_display', 'price_original']:
         df[col] = df[col].str.replace('$', '', regex=True)
         df[col] = df[col].str.replace(',', '', regex=True)
         df[col] = df[col].astype('float')
 
+    # Put name and id to the front
     col = df.pop("name")
     df.insert(0, col.name, col)
     col = df.pop("id")
