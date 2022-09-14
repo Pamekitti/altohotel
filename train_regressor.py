@@ -4,6 +4,9 @@ import pandas as pd
 
 df = pd.read_csv('csv_files/clustered_hotel.csv')
 
+"""
+Train and Predict missing price data using XGB regressor
+"""
 FEATURES = ['availability', 'roomleft', 'dis_from_des', 'latitude', 'longitude',
             'free_cancel', 'pay_later', 'discount_percent', 'review_score',
             'review_count', 'vip', 'have_hot_tub', 'have_pool', 'have_free_breakfast']
