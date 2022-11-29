@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 80
 
-CMD [ "python", "main.py" ]
+CMD [ "python", "index.py" ]
