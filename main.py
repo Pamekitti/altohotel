@@ -1,108 +1,166 @@
-from preprocessing.graphs import *
-import pandas as pd
-import dash
+import dash_bootstrap_components as dbc
 from dash import dcc, html
-import dash_daq as daq
 from dash.dependencies import Input, Output, State
-import os
-app_port = os.environ['APP_PORT']
 
-df = pd.read_csv('csv_files/clustered_hotel_regressor_filled.csv')
-print(f'Date contains {df.shape[0]} rows of hotels in Bangkok')
+from app import app
+from utils.preprocess_utils import *
+from utils.visualize_utils import *
+from utils.dashboard_utils import *
 
-# Graphs
-mapbox = plot_map(df)
-two_d = plot_review_price(df)
-three_d = plot_3d_review_price(df)
+server = app.server
 
-# Dash app
-app = dash.Dash(__name__)
-app.layout = html.Div([
-    html.Div([
-        html.Img(src="assets/logoaltotech-3-96x109.png"),
-        html.H1("Hotel Dash"),
-        html.P("Visualize hotel's business performance with "
-               "data science and interactive data visualization platform"),
-        html.Label("Price Range (USD)", className='dropdown-labels'),
-        dcc.RangeSlider(0, 1000, id='price-range', value=[0, 1000],
-                        tooltip={"placement": "bottom", "always_visible": True}),
-        html.Label("Rating Range", className='dropdown-labels'),
-        dcc.RangeSlider(0, 5, id='review-range', value=[0, 5],
-                        tooltip={"placement": "bottom", "always_visible": True}),
-        html.Button(id='update-button', children="Apply Filter"),
-        html.Div([
-                html.Label("Clustering Algorithm", className='other-labels'),
-                dcc.Dropdown(id='cluster-dropdown', className='dropdown',
-                             options=[
-                                 {'label': 'None', 'value': 'none'},
-                                 {'label': 'KMeans', 'value': 'kmeans'},
-                                 {'label': 'Agglomerative Clustering', 'value': 'agglomerative'},
-                                 {'label': 'Spectral Clustering', 'value': 'spectral'},
-                                 {'label': 'DBSCAN', 'value': 'DBSCAN'}
-                             ],
-                             value='none'),
-                html.Label("Number of Clusters", className='other-labels'),
-                dcc.Slider(id='n-slider', min=5, max=10, step=1, value=8),
-                html.Label("Fill Missing Data with Regressor?", className='other-labels'),
-                daq.BooleanSwitch(id='regression-toggle', className='toggle', on=False, color="#52BE80"),
-                html.Button(id='update-cluster', children="Apply Clusters")
-            ], id='config-box')
-    ], id='left-container'),
-    html.Div([
-        html.Div([
-            dcc.Graph(id='mapbox', figure=mapbox)
-        ], id='top-half'),
-        html.Div([
-            dcc.Graph(id='two-plot', figure=two_d),
-            dcc.Graph(id='three-plot', figure=three_d)
-        ], id='bottom-half'),
-    ], id='right-container')
-], id='container')
+# app_port = os.environ['APP_PORT']
+app_port = '80'
+
+
+def serve_layout() -> html.Div:
+    return html.Div([
+        dbc.Row([
+            # Left column
+            dbc.Col([
+                html.Div([
+                    # Header
+                    dbc.Col([
+                        html.Img(src="assets/altologo.png", style={'width': '50px', 'margin': '11px', 'float': 'left'}),
+                        html.H1("Hotel Footprinting Tool")
+                    ]),
+                    # Description
+                    html.P("Calculate the carbon footprint of your hotel stay and meeting in Phuket and \
+                    benchmark hotel with Cornell Hotel Sustainability Benchmarking (CHSB) index using \
+                    real-time hotel data supplied by TAT "),
+
+                    # 1. Search Hotel
+                    html.Label("1. PICK A HOTEL", className='dropdown-labels'),
+                    dbc.Row([
+                        dbc.Col([
+                            html.Div([
+                                dcc.Dropdown(
+                                    id='search',
+                                    placeholder='Select a hotel',
+                                    searchable=True,
+                                    optionHeight=20,
+                                    style={'xoverflow': 'scroll', 'yoverflow': 'scroll'}
+                                ),
+                            ], style={'width': '100%', 'margin-left': '20px', 'margin': '10px',
+                                      'xoverflow': 'scroll', 'yoverflow': 'scroll',
+                                      'padding': '10px', 'float': 'left'}),
+                        ]),
+                    ]),
+
+                    dbc.Row([
+                        # 2. See Result
+                        html.Label("2. GET THE RESULTS", className='dropdown-labels'),
+                        # Footprint report
+                        html.Div(id='full-results', children=None,
+                                 style={'margin': '10px', 'padding-right': '10px'}),
+                        # See full results button
+                        html.Div(id='full-results-button', children=None)
+                    ]),
+                    dbc.Row([
+                        # Filters
+                        html.Label("Filter by Review Score", className='dropdown-labels'),
+                        html.Div([
+                            dcc.RangeSlider(0, 10, id='price-range', value=[0, 10],
+                                            tooltip={"placement": "bottom", "always_visible": True}),
+                        ], style={'margin-left': '10px'}),
+                        # Rating Filter
+                        html.Label("Filter by Stars", className='dropdown-labels'),
+                        html.Div([
+                            dcc.RangeSlider(0, 5, id='review-range', value=[0, 5], step=0.5,
+                                            tooltip={"placement": "bottom", "always_visible": True}),
+                        ], style={'margin-left': '10px'}),
+                        # Button apply filter
+                        html.Button(id='update-button', children="Apply Filter"),
+
+                    ], style={'background-color': '#fffff'}),
+                ])
+            ], xs=3),
+            # Right column map
+            dbc.Col([
+                html.Div([
+                    dcc.Loading(
+                        dcc.Graph(id='mapbox')
+                        , type="circle")
+                ]),
+                html.Div([
+                    dbc.Row([
+                        dbc.Col([
+                            html.Img(src="assets/all_logo.png",
+                                     style={'width': '500px', 'margin': '0px', 'float': 'left'}),
+                        ])
+                    ])
+                ], id='footer')
+            ], xs=9)
+        ]),
+        html.Div(id='benchmark-results', style={'display': 'none'})
+    ])
+
+
+app.layout = serve_layout()
 
 
 @app.callback(
-    [Output(component_id='mapbox',
-            component_property='figure'),
-     Output(component_id='two-plot',
-            component_property='figure'),
-     Output(component_id='three-plot',
-            component_property='figure')],
-    [State(component_id='price-range',
-           component_property='value'),
-     State(component_id='review-range',
-           component_property='value'),
-     Input(component_id='update-button',
-           component_property='n_clicks'),
-     State(component_id='cluster-dropdown',
-           component_property='value'),
-     State(component_id='n-slider',
-           component_property='value'),
-     Input(component_id='update-cluster',
-           component_property='n_clicks'),
-     Input(component_id='regression-toggle',
-           component_property='on')
-     ]
+    [Output('search', 'options'),
+     Output('mapbox', 'figure'),
+     Output('full-results', 'children'),
+     Output('benchmark-results', 'children'),
+     Output('full-results-button', 'children')],
+    [State('price-range', 'value'),
+     State('review-range', 'value'),
+     Input('search', 'value'),
+     Input('update-button', 'n_clicks')]
 )
-def update_output(price_range, review_range, filter_clicks, cluster_algorithm, cluster_n, cluster_clicks, regressor_on):
+def update_output(price_range, review_range, name, filter_clicks):
+    df = get_hotel_data('assets/data_hotel_01.csv')
+    df_dict, dd_options, dd_defaults = df_to_dd_options(df)
     dff = df.copy()
-    fig1 = mapbox
-    fig2 = two_d
-    fig3 = three_d
-    if filter_clicks is not None:
-        if filter_clicks > 0:
-            dff = dff[dff['price'].between(price_range[0], price_range[1])]
-            dff = dff[dff['review_score'].between(review_range[0], review_range[1])]
-            fig1 = plot_map(dff)
-            fig2 = plot_review_price(dff)
-            fig3 = plot_3d_review_price(dff)
-    if (cluster_clicks is not None) and (cluster_algorithm != 'none'):
-        if cluster_clicks > 0:
-            if regressor_on:
-                fig2 = plot_review_price(dff, regressor=True)
-                fig3 = plot_3d_review_price(dff, regressor=True)
-            fig1 = plot_cluster(dff, f'{cluster_algorithm}_{cluster_n}')
+    if filter_clicks:
+        dff = df[(df['review_score'] >= price_range[0]) & (df['review_score'] <= price_range[1]) &
+                 (df['rating'] >= review_range[0]) & (df['rating'] <= review_range[1])]
 
-    return fig1, fig2, fig3
+    if name is None:
+        fig_map = build_map(dff)
+        footprint_report = None
+        modal_report = None
+        modal_button = None
+
+    else:
+        fig_map = build_map(dff, filter=True, name=name)
+        footprint_report = footprint_card()
+        modal_report = benchmark_modal()
+        modal_button = html.Button(id='results-button', children="See Benchmark Results"),
+
+    return dd_options, fig_map, footprint_report, modal_report, modal_button
+
+
+@app.callback(
+    Output("benchmark-modal", "is_open"),
+    [Input("results-button", "n_clicks"), Input("close-benchmark-modal", "n_clicks")],
+    [State("benchmark-modal", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    """ Toggle the info modal.
+    Args:
+        n1: number of clicks on the info button.
+        n2: number of clicks on the close button.
+        is_open: boolean value indicating whether the modal is open or not.
+    Returns:
+        boolean value indicating whether the modal is open or not.
+    """
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+
+@app.callback(
+    Output('search', 'value'),
+    [Input('mapbox', 'clickData')]
+)
+def crossfiltering_update_search(hoverData):
+    if hoverData is None:
+        return None
+    else:
+        return hoverData['points'][0]['text']
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 body {
-  background-color:#F4F6F6;
+  background-color:#FFFFFF;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
@@ -9,45 +9,13 @@ img {
   margin-top: 25px;
   margin-left: 95px;
 }
-#container {
-  width: 100%;
-  overflow: hidden;
-}
-#left-container {
-  height: 937px;
-  width: 275px;
-  background-color: #2C3E50;
-  float: left;
-  margin: 0;
-}
-#right-container {
-  margin-left: 275px;
-  overflow: scroll;
-}
-#top-half {
-  margin-top: 10px;
-  width: 100%;
-  overflow: hidden;
-  height: 450px;
-}
-#mapbox {
-  width: 1155px;
-  height: 450px;
-  float: left;
-  overflow: scroll;
-}
+
 #config-box {
   width: 270px;
   height: 300px;
   overflow: scroll;
 }
-#bottom-half {
-  margin-top: 15px;
-  margin-left: 15px;
-  width: 100%;
-  overflow: scroll;
-  height: 400px;
-}
+
 #two-plot {
   height: 420px;
   width: 600px;
@@ -62,11 +30,11 @@ img {
   overflow: scroll;
 }
 #update-button {
-  width: 190px;
-  height: 40px;
+  width: 120px;
+  height: 35px;
   border-radius: 5px;
-  margin-left: 38px;
-  margin-top: 20px;
+  margin-left: 30px;
+  margin-top: 10px;
   border: 0px;
   cursor: pointer;
   background-color: #17202A;
@@ -74,19 +42,20 @@ img {
   font-weight: bold;
   font-family: inherit;
   text-transform: uppercase;
-  font-size: 15px;
+  font-size: 12px;
   margin-bottom: 40px;
 }
 #update-button:hover {
   background-color: #52BE80;
   color: white;
 }
-#update-cluster {
-  width: 190px;
-  height: 40px;
+
+#search-button {
+  width: 120px;
+  height: 35px;
   border-radius: 5px;
-  margin-left: 38px;
-  margin-top: 20px;
+  margin-left: 30px;
+  margin-top: 10px;
   border: 0px;
   cursor: pointer;
   background-color: #17202A;
@@ -94,35 +63,57 @@ img {
   font-weight: bold;
   font-family: inherit;
   text-transform: uppercase;
-  font-size: 15px;
+  font-size: 12px;
   margin-bottom: 40px;
 }
-#update-cluster:hover {
+#search-button:hover {
   background-color: #52BE80;
   color: white;
 }
-h1 {
-  margin-top: 20px;
-  text-transform: uppercase;
-  font-size: 32px;
+
+#results-button {
+  width: 320px;
+  height: 35px;
+  border-radius: 5px;
+  margin-left: 20px;
+  margin-top: 0px;
+  border: 0px;
+  cursor: pointer;
+  background-color: #17202A;
   color: white;
-  text-align: center;
+  font-weight: bold;
+  font-family: inherit;
+  text-transform: uppercase;
+  font-size: 12px;
+  margin-bottom: 40px;
+}
+#results-button:hover {
+  background-color: #52BE80;
+  color: white;
+}
+
+h1 {
+  padding: 22px;;
+  font-size: 20px;
+  color: #120910;
+  text-align: left;
+  font-weight: bold;
 }
 p {
   margin-left: 20px;
-  font-size: 14px;
-  color: white;
+  font-size: 12px;
+  color: #120910;
 }
 .dropdown-labels {
   margin-left: 25px;
   font-size: 14px;
-  color: white;
+  color: #120910;
   font-weight: bold;
 }
 .other-labels {
   margin-left: 25px;
   font-size: 14px;
-  color: white;
+  color: #120910;
   font-weight: bold;
 }
 .dropdown {
@@ -140,21 +131,22 @@ p {
 .dropdown .Select-value{
   background-color: #FDFEFE;
   color: white;
-  font-size: 14px;
+  font-size: 10px;
 }
 .dropdown .VirtualizedSelectFocusedOption {
   background-color: #FDFEFE;
   color: black;
 }
 .dropdown .VirtualizedSelectOption  {
-  font-size: 14px;
+  font-size: 10px;
 }
-.toggle {
-  margin-top: 8px;
+
+.Select-menu-outer {
+    font-size: 12px;
 }
+
 #n-slider {
-  margin-top: 8px;
-  margin-bottom: 10px;
+  margin: 10px;
 }
 #n-slider .rc-slider-handle  {
   background-color: #52BE80;

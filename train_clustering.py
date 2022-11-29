@@ -1,6 +1,6 @@
 from models.clustering_models import Clusterer
-from preprocessing.clean_data import clean_hotel_data
-from preprocessing.feature_engineering import feature_engineer
+from utils.clean_data import clean_hotel_data
+from utils.feature_engineering import feature_engineer
 import pandas as pd
 
 '''
