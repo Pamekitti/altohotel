@@ -7,11 +7,6 @@ from utils.preprocess_utils import *
 from utils.visualize_utils import *
 from utils.dashboard_utils import *
 
-server = app.server
-
-# app_port = os.environ['APP_PORT']
-app_port = '80'
-
 
 def serve_layout() -> html.Div:
     return html.Div([
@@ -19,19 +14,20 @@ def serve_layout() -> html.Div:
             # Left column
             dbc.Col([
                 html.Div([
-                    # Header
-                    dbc.Col([
-                        html.Img(src="assets/altologo.png", style={'width': '50px', 'margin': '11px', 'float': 'left'}),
-                        html.H1("Hotel Footprinting Tool")
-                    ]),
                     # Description
                     html.P("Calculate the carbon footprint of your hotel stay and meeting in Phuket and \
                     benchmark hotel with Cornell Hotel Sustainability Benchmarking (CHSB) index using \
-                    real-time hotel data supplied by TAT "),
+                    real-time hotel data supplied by TAT ",
+                           style={'margin': '20px'}),
 
                     # 1. Search Hotel
                     html.Label("1. PICK A HOTEL", className='dropdown-labels'),
+                    html.P('Select a specific hotel from the map or use the search bar',
+                           style={'margin-bottom': '-10px'}),
                     dbc.Row([
+                        dbc.Col([
+                            html.Button(id='drawer-button', children="Filters"),
+                        ], width=2),
                         dbc.Col([
                             html.Div([
                                 dcc.Dropdown(
@@ -49,50 +45,42 @@ def serve_layout() -> html.Div:
 
                     dbc.Row([
                         # 2. See Result
-                        html.Label("2. GET THE RESULTS", className='dropdown-labels'),
+                        html.Label("2. GET THE RESULTS", className='dropdown-labels',
+                                   style={'margin-bottom': '-10px'}),
                         # Footprint report
-                        html.Div(id='full-results', children=None,
+                        html.Div(id='footprint-summary', children=None,
                                  style={'margin': '10px', 'padding-right': '10px'}),
-                        # See full results button
-                        html.Div(id='full-results-button', children=None)
+                        html.Div(id='footprint-button', children=None),
+
+                        # Hotel Benchmark summary
+                        html.Div(id='hotel-summary', children=None,
+                                 style={'margin': '10px', 'padding-right': '10px'}),
+                        html.Div(id='benchmark-button', children=None),
+
                     ]),
                     dbc.Row([
-                        # Filters
-                        html.Label("Filter by Review Score", className='dropdown-labels'),
-                        html.Div([
-                            dcc.RangeSlider(0, 10, id='price-range', value=[0, 10],
-                                            tooltip={"placement": "bottom", "always_visible": True}),
-                        ], style={'margin-left': '10px'}),
-                        # Rating Filter
-                        html.Label("Filter by Stars", className='dropdown-labels'),
-                        html.Div([
-                            dcc.RangeSlider(0, 5, id='review-range', value=[0, 5], step=0.5,
-                                            tooltip={"placement": "bottom", "always_visible": True}),
-                        ], style={'margin-left': '10px'}),
-                        # Button apply filter
-                        html.Button(id='update-button', children="Apply Filter"),
 
                     ], style={'background-color': '#fffff'}),
                 ])
-            ], xs=3),
+            ], xs=4),
             # Right column map
             dbc.Col([
                 html.Div([
-                    dcc.Loading(
-                        dcc.Graph(id='mapbox')
-                        , type="circle")
+                    dcc.Graph(id='mapbox')
                 ]),
                 html.Div([
                     dbc.Row([
                         dbc.Col([
-                            html.Img(src="assets/all_logo.png",
+                            html.Img(src="../assets/all_logo.png",
                                      style={'width': '500px', 'margin': '0px', 'float': 'left'}),
                         ])
                     ])
                 ], id='footer')
-            ], xs=9)
+            ], xs=8)
         ]),
-        html.Div(id='benchmark-results', style={'display': 'none'})
+        html.Div(id='footprint-results', style={'display': 'none'}),
+        html.Div(id='benchmark-results', style={'display': 'none'}),
+        filter_drawer(),
     ])
 
 
@@ -102,9 +90,12 @@ app.layout = serve_layout()
 @app.callback(
     [Output('search', 'options'),
      Output('mapbox', 'figure'),
-     Output('full-results', 'children'),
+     Output('footprint-summary', 'children'),
+     Output('hotel-summary', 'children'),
+     Output('footprint-results', 'children'),
+     Output('footprint-button', 'children'),
      Output('benchmark-results', 'children'),
-     Output('full-results-button', 'children')],
+     Output('benchmark-button', 'children')],
     [State('price-range', 'value'),
      State('review-range', 'value'),
      Input('search', 'value'),
@@ -120,22 +111,54 @@ def update_output(price_range, review_range, name, filter_clicks):
 
     if name is None:
         fig_map = build_map(dff)
-        footprint_report = None
-        modal_report = None
-        modal_button = None
+
+        footprint_summary = None
+        guest_modal_report = None
+        footprint_button = None
+
+        hotel_summary = None
+        hotel_modal_report = None
+        hotel_modal_button = None
 
     else:
         fig_map = build_map(dff, filter=True, name=name)
-        footprint_report = footprint_card()
-        modal_report = benchmark_modal()
-        modal_button = html.Button(id='results-button', children="See Benchmark Results"),
 
-    return dd_options, fig_map, footprint_report, modal_report, modal_button
+        footprint_summary = footprint_card(name)
+        guest_modal_report = footprint_modal(name)
+        footprint_button = html.Button(id='guest-button', children="Get Footprint Report")
+
+        hotel_summary = hotel_card(name)
+        hotel_modal_report = benchmark_modal(name)
+        hotel_modal_button = html.Button(id='hotel-button', children="See Benchmark Results")
+
+    return [dd_options, fig_map, footprint_summary, hotel_summary, guest_modal_report, footprint_button,
+            hotel_modal_report, hotel_modal_button]
 
 
+# Callback for Carbon footprint modal
+@app.callback(
+    Output("footprint-modal", "is_open"),
+    [Input("guest-button", "n_clicks"), Input("close-footprint-modal", "n_clicks")],
+    [State("footprint-modal", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    """ Toggle the info modal.
+    Args:
+        n1: number of clicks on the info button.
+        n2: number of clicks on the close button.
+        is_open: boolean value indicating whether the modal is open or not.
+    Returns:
+        boolean value indicating whether the modal is open or not.
+    """
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+
+# Callback for Benchmark results modal
 @app.callback(
     Output("benchmark-modal", "is_open"),
-    [Input("results-button", "n_clicks"), Input("close-benchmark-modal", "n_clicks")],
+    [Input("hotel-button", "n_clicks"), Input("close-benchmark-modal", "n_clicks")],
     [State("benchmark-modal", "is_open")],
 )
 def toggle_modal(n1, n2, is_open):
@@ -163,5 +186,10 @@ def crossfiltering_update_search(hoverData):
         return hoverData['points'][0]['text']
 
 
-if __name__ == '__main__':
-    app.run_server(debug=False, host='0.0.0.0', port=app_port)
+@app.callback(
+    Output("drawer", "opened"),
+    Input("drawer-button", "n_clicks"),
+    prevent_initial_call=True,
+)
+def drawer_demo(n_clicks):
+    return True

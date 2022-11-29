@@ -17,6 +17,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/csv_files/hotel_data_expedia.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

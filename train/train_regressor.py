@@ -2,7 +2,7 @@ from sklearn.model_selection import train_test_split
 import xgboost as xgb
 import pandas as pd
 
-df = pd.read_csv('csv_files/clustered_hotel.csv')
+df = pd.read_csv('../csv_files/clustered_hotel.csv')
 
 """
 Train and Predict missing price data using XGB regressor

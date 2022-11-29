@@ -13,10 +13,8 @@ def get_hotel_data(src: str):
                             'property_type': 'type', 'area_name': 'area'})
 
     # Split string in hotel_name column
-    df['name'] = df['name'].str.split('(').str[0]
-    df['name'] = df['name'].str.split('SHA').str[0]
-    df['name'] = df['name'].str.split('&').str[0]
-    df['name'] = df['name'].str.split('/').str[0]
+    df['name'] = df['name'].str.split("(").str[0]
+    df['name'] = df['name'].str.split(" SHA").str[0]
 
     return df
 

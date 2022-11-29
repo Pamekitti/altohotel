@@ -3,3 +3,5 @@ dash_bootstrap_components==1.2.1
 numpy==1.23.5
 pandas==1.5.2
 plotly==5.11.0
+dash-mantine-components==0.10.2
+
